@@ -1,0 +1,78 @@
+cmake_minimum_required(VERSION 3.12.3)
+project (xayachannelwrap LANGUAGES CXX VERSION 0.1)
+
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(BUILD_SHARED_LIBS ON)
+
+set(CMAKE_C_FLAGS_RELEASE "-O2")
+set(CMAKE_CXX_FLAGS_RELEASE ${CMAKE_C_FLAGS_RELEASE})
+add_definitions( -DGLOG_NO_ABBREVIATED_SEVERITIES)
+
+
+set(CMAKE_BUILD_TYPE RELEASE)
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS, true)
+
+
+set(BASE_DIR ./)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+find_package(xayagame REQUIRED)
+find_package(gamechannel REQUIRED)
+find_package(xayautil REQUIRED)
+find_package(jsoncpp REQUIRED)
+find_package(glog REQUIRED)
+find_package(gflags REQUIRED)
+find_package(protobuf REQUIRED)
+find_package(sqlite3 REQUIRED)
+find_package(jsonrpccppcommon REQUIRED)
+find_package(jsonrpccppclient REQUIRED)
+find_package(jsonrpccppserver REQUIRED)
+find_package(zmq REQUIRED)
+find_package(lmdb REQUIRED)
+find_package(openssl REQUIRED)
+
+include(FindProtobuf)
+find_package(Protobuf REQUIRED)
+
+get_filename_component(HEADERS src REALPATH)
+include_directories(${LMDB_INCLUDE_DIR} ${ZMQ_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIR} ${GFLAGS_INCLUDE_DIR} ${PROTOBUF_INCLUDE_DIR} ${SQLITE3_INCLUDE_DIR} ${JSONRPCCCPCLIENT_INCLUDE_DIR} ${JSONRPCCCP_CLIENT_LIBRARY} ${JSONRPCCCP_SERVER_LIBRARY} ${JSONRPCCCP_COMMON_LIBRARY}${JSONCPP_INCLUDE_DIR} ${XAYAUTIL_INCLUDE_DIRS} ${XAYAGAME_INCLUDE_DIRS} ${GAMECHANNEL_INCLUDE_DIRS} ${GLOG_INCLUDE_DIRS} ${HEADERS})
+set(SOURCE_FILES xayachannelwrap.cpp)
+
+add_library(xayachannelwrap SHARED ${SOURCE_FILES})
+add_library(xayagame STATIC IMPORTED)
+add_library(gamechannel STATIC IMPORTED)
+add_library(xayautil STATIC IMPORTED)
+add_library(jsoncpp STATIC IMPORTED)
+add_library(glog STATIC IMPORTED)
+add_library(gflags STATIC IMPORTED)
+add_library(protobuf STATIC IMPORTED)
+add_library(sqlite3 STATIC IMPORTED)
+add_library(jsonrpccppcommon STATIC IMPORTED)
+add_library(jsonrpccppclient STATIC IMPORTED)
+add_library(jsonrpccppserver STATIC IMPORTED)
+add_library(zmq STATIC IMPORTED)
+add_library(lmdb STATIC IMPORTED)
+add_library(openssl STATIC IMPORTED)
+
+target_include_directories (xayachannelwrap PUBLIC ${BASE_DIR})
+
+target_link_libraries( ${PROJECT_NAME} 
+${GAMECHANNEL_LIBRARY}
+${XAYAUTIL_LIBRARY}
+${XAYAGAME_LIBRARY}
+${JSONCPP_LIBRARY}
+${JSONRPCCCP_COMMON_LIBRARY}
+${JSONRPCCCP_CLIENT_LIBRARY}
+${JSONRPCCCP_SERVER_LIBRARY}
+${GFLAGS_LIBRARY}
+${PROTOBUF_LIBRARY}
+${SQLITE3_LIBRARY}
+${GLOG_LIBRARY}
+${ZMQ_LIBRARY}
+${LMDB_LIBRARY}
+${OPENSSL_LIBRARY}
+stdc++fs
+)
+
+install(TARGETS xayachannelwrap DESTINATION /usr/TestXaya/TextXaya/TextXaya/bin/Debug)
