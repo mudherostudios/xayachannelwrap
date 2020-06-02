@@ -41,6 +41,17 @@ static DISPUTEMOVE_CALLBACK disputeMoveCallback;
 static MAYBEAUTOMOVE_CALLBACK maybeAutoMoveCallback;
 static MAYBEONCHAINMOVE_CALLBACK maybeOnChainMoveCallback;
 
+/* This is needed to workaround Unity crash
+on abort signal;*/
+jmp_buf env;
+
+void
+on_sigabrt(int signum)
+{
+  longjmp(env, 1);
+}
+
+
 bool
 IsStateValidExtern(const xaya::BoardState& state)
 {
@@ -66,7 +77,7 @@ return turnCountCallback(metadata.c_str(), state.c_str());
 }
 
 bool
-IsStateValidExtern(const std::string& channelId, const std::string& metadata,
+ApplyMoveCallbackExtern(const std::string& channelId, const std::string& metadata,
                    const xaya::BoardState& state, const xaya::BoardMove& mv,
                    xaya::BoardState& newState)
 {
@@ -150,6 +161,7 @@ RunCallbackChannelFromExternal (std::string gameId, std::string channelId, std::
 
   xaya::BoardRulesCallbacks brcb;
   brcb.IsStateValid = IsStateValidExtern;
+  brcb.ApplyMove = ApplyMoveCallbackExtern;
   brcb.StatesEqual = IsStatesEqualExtern;
   brcb.WhoseTurn = WhoseTurnCallbackExtern;
   brcb.TurnCount = TurnCountExtern;
@@ -172,8 +184,22 @@ RunCallbackChannelFromExternal (std::string gameId, std::string channelId, std::
   config.BroadcastRpcUrl = BroadcastRpcUrl;
   config.ChannelRpcPort = ChannelRpcPort;
   
+  LOG(WARNING) << "GameId: " << gameId;
+  LOG(WARNING) << "ChannelId: " << channelId;
+  LOG(WARNING) << "PlayerName: " << playerName;
+  LOG(WARNING) << "XayaRpcUrl: " << XayaRpcUrl;
+  LOG(WARNING) << "GspRpcUrl: " << GspRpcUrl;
+  LOG(WARNING) << "BroadcastRpcUrl: " << BroadcastRpcUrl;
+  LOG(WARNING) << "ChannelRpcPort: " << ChannelRpcPort;
+  LOG(WARNING) << "glogName: " << glogName;
+  LOG(WARNING) << "glogDataDir: " << glogDataDir;  
+  
+   if (setjmp(env) == 0) {
+    signal(SIGABRT, &on_sigabrt);
   xaya::RunCallbackChannel(config);
- 
+    } else {
+  }
+  
   google::ShutdownGoogleLogging();
   
   return 0;
@@ -181,6 +207,14 @@ RunCallbackChannelFromExternal (std::string gameId, std::string channelId, std::
 
 extern "C" 
 {
+	
+XAYAWRAP_API void
+setApplyMoveCallback(APPLYMOVE_CALLBACK callback)
+{
+  if (callback) {
+    applyMoveCallback = callback;
+  }
+}	
 	
 XAYAWRAP_API void
 setMaybeOnChainMoveCallback(MAYBEONCHAINMOVE_CALLBACK callback)
